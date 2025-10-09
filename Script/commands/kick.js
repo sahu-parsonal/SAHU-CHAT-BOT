@@ -1,39 +1,71 @@
 module.exports.config = {
 	name: "kick",
-	version: "1.0.1", 
+	version: "2.0.0",
 	hasPermssion: 0,
-	credits: "𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
- description: "the person you need to remove from the group by tag",
-	commandCategory: "System", 
-	usages: "[tag]", 
+	credits: "SHAHADAT SAHU",
+	description: "Kick by replying mention or auto-remove spammers ",
+	commandCategory: "System",
+	usages: "[tag or reply]",
 	cooldowns: 0,
 };
 
-module.exports.languages = {
-	"vi": {
-		"error": "Đã có lỗi xảy ra, vui lòng thử lại sau",
-		"needPermssion": "Cần quyền quản trị viên nhóm\nVui lòng thêm và thử lại!",
-		"missingTag": "Bạn phải tag người cần kick"
-	},
-	"en": {
-		"error": "Error! An error occurred. Please try again later!",
-		"needPermssion": "Need group admin\nPlease add and try again!",
-		"missingTag": "You need tag some person to kick"
-	}
-}
+const spamTracker = {}; 
+module.exports.run = async function({ api, event, Threads }) {
+	const mention = Object.keys(event.mentions);
+	let targetID;
 
-module.exports.run = async function({ api, event, getText, Threads }) {
-	var mention = Object.keys(event.mentions);
 	try {
-		let dataThread = (await Threads.getData(event.threadID)).threadInfo;
-		if (!dataThread.adminIDs.some(item => item.id == api.getCurrentUserID())) return api.sendMessage(getText("needPermssion"), event.threadID, event.messageID);
-		if(!mention[0]) return api.sendMessage("You have to tag the need to kick",event.threadID);
-		if (dataThread.adminIDs.some(item => item.id == event.senderID)) {
-			for (const o in mention) {
-				setTimeout(() => {
-					api.removeUserFromGroup(mention[o],event.threadID) 
-				},3000)
-			}
+		const threadInfo = (await Threads.getData(event.threadID)).threadInfo;
+		const botID = api.getCurrentUserID();
+		const senderID = event.senderID;
+
+		
+		if (!threadInfo.adminIDs.some(e => e.id == botID))
+			return api.sendMessage("কাওকে Group থেকে kick করানো জন্য আগে আমাকে Group এডমিন দিতে হবে 😒.", event.threadID, event.messageID);
+		if (event.type === "message_reply") targetID = event.messageReply.senderID;
+		else if (mention.length > 0) targetID = mention[0];
+		else return api.sendMessage("Please tag or reply to the user you want to remove..!🤌", event.threadID, event.messageID);
+		if (!threadInfo.adminIDs.some(e => e.id == senderID))
+			return api.sendMessage("Only group admins can use this command✅", event.threadID, event.messageID);
+		api.sendMessage(`Removing user...`, event.threadID, () => {
+			setTimeout(() => {
+				api.removeUserFromGroup(targetID, event.threadID);
+			}, 2000);
+		});
+
+	} catch (err) {
+		console.error(err);
+		return api.sendMessage("Something went wrong. Please try again‼️", event.threadID, event.messageID);
+	}
+};
+
+module.exports.handleEvent = async function({ api, event, Threads }) {
+	try {
+		const threadInfo = (await Threads.getData(event.threadID)).threadInfo;
+		const botID = api.getCurrentUserID();
+		if (!threadInfo.adminIDs.some(e => e.id == botID)) return;
+		const userID = event.senderID;
+		const threadID = event.threadID;
+		const now = Date.now();
+		if (!spamTracker[threadID]) spamTracker[threadID] = {};
+		if (!spamTracker[threadID][userID]) {
+			spamTracker[threadID][userID] = [];
 		}
-	} catch { return api.sendMessage(getText("error"),event.threadID) }
-}
+		spamTracker[threadID][userID].push(now);
+		spamTracker[threadID][userID] = spamTracker[threadID][userID].filter(t => now - t < 2 * 60 * 1000);
+		if (spamTracker[threadID][userID].length >= 15) {
+			spamTracker[threadID][userID] = [];
+			api.sendMessage(
+				`User ${event.senderID} detected for spamming\nRemoving from group...`,
+				threadID,
+				() => {
+					setTimeout(() => {
+						api.removeUserFromGroup(userID, threadID);
+					}, 2000);
+				}
+			);
+		}
+	} catch (e) {
+		console.error(e);
+	}
+};
