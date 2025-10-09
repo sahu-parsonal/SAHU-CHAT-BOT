@@ -1,49 +1,52 @@
-const axios = require("axios");
-
 module.exports.config = {
     name: "uid",
-    version: "2.0.1",
+    version: "3.0.0",
     hasPermssion: 0,
     credits: "SHAHADAT SAHU",
-    description: "Get user ID (Prefix + No Prefix)",
+    description: "Get UID with reaction (self, mention, or reply).",
     commandCategory: "Tools",
-    usages: "uid [tag/none]",
-    cooldowns: 3
+    usages: "uid [tag/reply/none]",
+    cooldowns: 0
 };
 
-
-module.exports.handleEvent = function ({ api, event }) {
+module.exports.handleEvent = async function({ api, event }) {
     if (!event.body) return;
     const body = event.body.trim().toLowerCase();
+    if (body !== "uid") return;
 
-    if (body === "uid") {
-        return api.sendMessage(`${event.senderID}`, event.threadID, event.messageID);
+    let targetID = event.senderID;
+    let messageText = `Your UID: ${targetID}`;
+
+    if (event.type === "message_reply" && event.messageReply) {
+        targetID = event.messageReply.senderID;
+        messageText = `Replied user's UID: ${targetID}`;
+    } else if (Object.keys(event.mentions || {}).length > 0) {
+        targetID = Object.keys(event.mentions)[0];
+        const name = Object.values(event.mentions)[0].replace("@", "");
+        messageText = `${name}: ${targetID}`;
     }
 
-    if (body.startsWith("uid") && Object.keys(event.mentions || {}).length > 0) {
-        for (const id of Object.keys(event.mentions)) {
-            const name = Object.values(event.mentions)[0].replace("@", "");
-            return api.sendMessage(`${name}: ${id}`, event.threadID, event.messageID);
-        }
-    }
+    const sentMessage = await api.sendMessage(messageText, event.threadID, event.messageID);
+    api.setMessageReaction("✅", sentMessage.messageID, event.threadID, (err) => {
+        if (err) console.log(err);
+    });
 };
 
+module.exports.run = async function({ api, event }) {
+    let targetID = event.senderID;
+    let messageText = `Your UID: ${targetID}`;
 
-module.exports.run = async function ({ api, event }) {
-    const args = event.body.trim().split(/\s+/);
-    const cmdName = this.config.name;
-
-    
-    if (args[0].toLowerCase() !== global.config.PREFIX + cmdName && args[0].toLowerCase() !== cmdName)
-        return;
-    if (Object.keys(event.mentions).length === 0) {
-        return api.sendMessage(`${event.senderID}`, event.threadID, event.messageID);
-    } 
-    
-    else {
-        for (const id of Object.keys(event.mentions)) {
-            const name = Object.values(event.mentions)[0].replace("@", "");
-            return api.sendMessage(`${name}: ${id}`, event.threadID, event.messageID);
-        }
+    if (event.type === "message_reply" && event.messageReply) {
+        targetID = event.messageReply.senderID;
+        messageText = `Replied user's UID: ${targetID}`;
+    } else if (Object.keys(event.mentions).length > 0) {
+        targetID = Object.keys(event.mentions)[0];
+        const name = Object.values(event.mentions)[0].replace("@", "");
+        messageText = `${name}: ${targetID}`;
     }
+
+    const sentMessage = await api.sendMessage(messageText, event.threadID, event.messageID);
+    api.setMessageReaction("✅", sentMessage.messageID, event.threadID, (err) => {
+        if (err) console.log(err);
+    });
 };
