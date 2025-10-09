@@ -1,27 +1,45 @@
 module.exports.config = {
-	name: "unsend",
-	version: "1.0.1",
-	hasPermssion: 0,
-	credits: "𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
-	description: "Gỡ tin nhắn của bot",
-	commandCategory: "system",
-	usages: "unsend",
-	cooldowns: 0
+  name: "unsend",
+  version: "2.0.0",
+  hasPermssion: 0,
+  credits: "SHAHADAT SAHU",
+  description: "Unsend bot's sent message",
+  commandCategory: "system",
+  usages: "unsend",
+  cooldowns: 0
 };
 
-module.exports.languages = {
-	"vi": {
-		"returnCant": "Không thể gỡ tin nhắn của người khác.",
-		"missingReply": "Hãy reply tin nhắn cần gỡ."
-	},
-	"en": {
-		"returnCant": "কি unsent করমু replig করে বলো সুনা🫰",
-		"missingReply": "Mere Jis Msg ko Unsend Karna Hai Usme Reply Karke Likkho."
-	}
-}
+const lang = {
+  returnCant: "কি unsent করমু replig করে বলো সুনা🫰",
+  missingReply: "কি unsent করমু replig করে বলো সুনা🫰."
+};
 
-module.exports.run = function({ api, event, getText }) {
-	if (event.messageReply.senderID != api.getCurrentUserID()) return api.sendMessage(getText("returnCant"), event.threadID, event.messageID);
-	if (event.type != "message_reply") return api.sendMessage(getText("missingReply"), event.threadID, event.messageID);
-	return api.unsendMessage(event.messageReply.messageID);
-	}
+module.exports.run = async function ({ api, event }) {
+  if (event.type !== "message_reply")
+    return api.sendMessage(lang.missingReply, event.threadID, event.messageID);
+
+  if (event.messageReply.senderID !== api.getCurrentUserID())
+    return api.sendMessage(lang.returnCant, event.threadID, event.messageID);
+
+  return api.unsendMessage(event.messageReply.messageID);
+};
+
+
+module.exports.handleEvent = async function ({ api, event }) {
+  try {
+    const msg = (event.body || "").trim().toLowerCase();
+    const cmd = module.exports.config.name.toLowerCase();
+
+    if (msg === cmd || prefixes.some(p => msg === p + cmd)) {
+      if (event.type !== "message_reply")
+        return api.sendMessage(lang.missingReply, event.threadID, event.messageID);
+
+      if (event.messageReply.senderID !== api.getCurrentUserID())
+        return api.sendMessage(lang.returnCant, event.threadID, event.messageID);
+
+      return api.unsendMessage(event.messageReply.messageID);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
