@@ -6,7 +6,7 @@ module.exports.config = {
   description: "Reply বা Mention করে কাউকে বারবার Mention দিন",
   commandCategory: "group",
   usages: "reply m [count] বা /m @mention [count]",
-  cooldowns: 3
+  cooldowns: 0
 };
 
 module.exports.run = async ({ api, event, args }) => {
