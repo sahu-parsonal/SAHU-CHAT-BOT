@@ -1,6 +1,6 @@
 module.exports.config = {
  name: "onlyadmin",
- version: "1.0",
+ version: "1.0.0",
  hasPermssion: 2,
  credits: "SHAHADAT SAHU",
  description: "Admin only",
