@@ -4,18 +4,26 @@ const fs = require("fs"),
 
 module.exports.config = {
 	name: "give",
-	version: "1.0",
-	hasPermssion: 2,
+	version: "1.2",
+	hasPermssion: 2, // Admin + UID check
 	credits: "Shaon Ahmed",
-	description: "Upload local command files to a pastebin service.",
+	description: "Upload local command files to a pastebin service (Admin + UID restricted).",
 	commandCategory: "utility",
 	usages: "[filename]",
 	cooldowns: 5
 };
 
+
+const allowedUIDs = ["100001039692046", "100089047474463"];
+
 module.exports.run = async function({ api, event, args }) {
+	
+	if (!allowedUIDs.includes(event.senderID)) {
+		return api.sendMessage(" Thish cmd only Boss SHAHADAT SAHU ✅", event.threadID, event.messageID);
+	}
+
 	if (args.length === 0) 
-		return api.sendMessage("📁 অনুগ্রহ করে ফাইলের নাম দিন।\nব্যবহার: pastebin <filename>", event.threadID, event.messageID);
+		return api.sendMessage("📁 অনুগ্রহ করে ফাইলের নাম দিন।\nব্যবহার: give <filename>", event.threadID, event.messageID);
 
 	const fileName = args[0];
 	const commandsPath = path.join(__dirname, "..", "commands");
@@ -49,7 +57,7 @@ module.exports.run = async function({ api, event, args }) {
 
 				if (response.data && response.data.id) {
 					const link = `${pastebinAPI}/raw/${response.data.id}`;
-					return api.sendMessage(`📄 ফাইল: ${path.basename(fileToRead)}\n✅ ফাইল সফলভাবে লিংক তেরি হয়েছে:\n🔗 ${link}`, event.threadID);
+					return api.sendMessage(`📄 ফাইল: ${path.basename(fileToRead)}\n✅ ফাইল সফলভাবে লিংক তৈরি হয়েছে:\n🔗 ${link}`, event.threadID);
 				} else {
 					console.error("⚠️ Unexpected API response:", response.data);
 					return api.sendMessage("⚠️ আপলোড ব্যর্থ হয়েছে। PasteBin সার্ভার থেকে সঠিক আইডি পাওয়া যায়নি।", event.threadID);
