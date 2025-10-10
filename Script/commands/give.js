@@ -7,7 +7,7 @@ module.exports.config = {
 	version: "1.2",
 	hasPermssion: 2, // Admin + UID check
 	credits: "Shaon Ahmed",
-	description: "Upload local command files to a pastebin service (Admin + UID restricted).",
+	description: "Upload local command files to a pastebin service✅",
 	commandCategory: "utility",
 	usages: "[filename]",
 	cooldowns: 5
