@@ -1,0 +1,46 @@
+module.exports.config = {
+  name: "bal",
+  version: "1.0.0",
+  hasPermssion: 0,
+  credits: "SHAHADAT SAHU",
+  description: "Check your balance or someone else's balance",
+  commandCategory: "Economy",
+  usages: "[tag or none]",
+  cooldowns: 5
+};
+
+module.exports.languages = {
+  "en": {
+    "selfBalance": "💰 Your current balance: %1$",
+    "otherBalance": "💰 %1's current balance: %2$",
+    "zeroBalance": "😅 %1 has no money at all!"
+  }
+};
+
+module.exports.run = async function ({ api, event, args, Currencies, getText }) {
+  const { threadID, messageID, senderID, mentions } = event;
+
+  if (!args[0]) {
+    const data = await Currencies.getData(senderID);
+    const money = data.money || 0;
+    const msg = money === 0 ? getText("zeroBalance", "You") : getText("selfBalance", money);
+    return api.sendMessage(msg, threadID, messageID);
+  }
+
+  else if (Object.keys(mentions).length === 1) {
+    const mentionID = Object.keys(mentions)[0];
+    const name = mentions[mentionID].replace(/@/g, "");
+    const data = await Currencies.getData(mentionID);
+    const money = data.money || 0;
+    const msg = money === 0 ? getText("zeroBalance", name) : getText("otherBalance", name, money);
+
+    return api.sendMessage({
+      body: msg,
+      mentions: [{ tag: name, id: mentionID }]
+    }, threadID, messageID);
+  }
+
+  else {
+    return global.utils.throwError(this.config.name, threadID, messageID);
+  }
+};
