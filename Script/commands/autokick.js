@@ -143,4 +143,11 @@ module.exports.handleReaction = async ({ api, event, handleReaction, Users, Thre
       api.unsendMessage(messageID);
       const adminName = await Users.getNameUser(userID);
       const targetName = await Users.getNameUser(targetID);
-      api.sendMessage(`✅ ${adminName} has
+      api.sendMessage(`✅ ${adminName} has kicked ${targetName} for using banned words.`, threadID);
+    });
+  }
+
+  if (reaction === reactionCancel) {
+    return api.unsendMessage(messageID);
+  }
+};
