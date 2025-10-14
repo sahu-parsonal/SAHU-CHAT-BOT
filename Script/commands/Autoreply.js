@@ -6,7 +6,7 @@ module.exports.config = {
   version: "6.1.0",
   hasPermssion: 0,
   credits: "𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐈𝐬𝐥𝐚𝐦",
-  description: "Auto-response bot with specified triggers + typing effect",
+  description: "Auto-response bot",
   commandCategory: "No Prefix",
   usages: "[any trigger]",
   cooldowns: 3,
