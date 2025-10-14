@@ -3,10 +3,10 @@ const path = global.nodemodule["path"];
 
 module.exports.config = {
   name: "autoreplybot",
-  version: "6.1.0",
+  version: "6.1.1",
   hasPermssion: 0,
   credits: "𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐈𝐬𝐥𝐚𝐦",
-  description: "Auto-response bot with specified triggers + typing effect",
+  description: "Auto-response bot",
   commandCategory: "No Prefix",
   usages: "[any trigger]",
   cooldowns: 3,
@@ -15,9 +15,9 @@ module.exports.config = {
 // Typing effect function
 async function sendTyping(api, threadID, time = 1500) {
   try {
-    await api.sendTypingIndicator(threadID, true);
-    await new Promise(resolve => setTimeout(resolve, time));
-    await api.sendTypingIndicator(threadID, false);
+    await api.sendTypingIndicator(threadID, true); // টাইপিং শুরু
+    await new Promise(resolve => setTimeout(resolve, time)); // কিছু সময় ধরে টাইপিং
+    await api.sendTypingIndicator(threadID, false); // টাইপিং বন্ধ
   } catch (err) {
     console.error("Typing error:", err);
   }
@@ -29,8 +29,18 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
   const name = await Users.getNameUser(senderID);
   const msg = body.toLowerCase().trim();
 
+  // Typing times per trigger (optional, default 1500ms)
+  const typingTimes = {
+    "hi": 1500,
+    "good morning": 2000,
+    "bye": 1200,
+    "i love you": 2500,
+    "assalamualaikum": 1500,
+    // চাইলে আরো trigger add করতে পারবেন
+  };
+
   const responses = {
-    "miss you": "অরেক বেডারে Miss না করে xan মেয়ে হলে বস শাহাদাৎ রে হাঙ্গা করো😶👻😘",
+    "miss you": "অরেক বেডারে Miss না করে xan মেয়ে হলে বস শাহাদৎ রে হাঙ্গা করো😶👻😘",
     "kiss de": "কিস দিস না তোর মুখে দূর গন্ধ কয়দিন ধরে দাঁত ব্রাশ করিস নাই🤬",
     "👍": "সর এখান থেকে লাইকার আবাল..!🐸🤣👍⛏️",
     "help": "Prefix de sala",
@@ -40,21 +50,11 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     "good morning": "GOOD MORNING দাত ব্রাশ করে খেয়ে নেও😚",
     "tor ball": "~ এখনো বাল উঠে নাই নাকি তোমার?? 🤖",
     "sahu": "উনি এখন কাজে বিজি আছে কি বলবেন আমাকে বলতে পারেন..!😘",
-    "owner": "‎[𝐎𝐖𝐍𝐄𝐑:☞ Shahadat Islam☜\nFacebook: https://www.facebook.com/profile.php?id=100001039692046\nWhatsApp: +8801882333052",
+    "owner": "‎[𝐎𝐖𝐍𝐄ର:☞ Shahadat Islam☜\nFacebook: https://www.facebook.com/profile.php?id=100001039692046\nWhatsApp: +8801882333052",
     "admin": "He is SAHU তাকে সবাই Cyber Bot Team Saport Admin হিসেবে চিনে😘☺️",
     "babi": "এ তো হাছিনা হে মেরে দিলকি দারকান হে মেরি জান হে😍.",
     "chup": "তুই চুপ চুপ কর পাগল ছাগল",
     "assalamualaikum": "Walaikum Assalam 💫",
-    "ASSALAMUALAIKUM": "Walaikum Assalam 💫",
-    "Assalamualaikum": "Walaikum Assalam 💫",
-    "আসসালামুয়ালাইকুম": "ওয়া আলাইকুমুস সালাম 💫",
-    "আসসালামু আলাইকুম": "ওয়া আলাইকুমুস সালাম 💫",
-    "as-salamu alaykum": "Walaikum Assalam 💫",
-    "assalamu alaikum": "Walaikum Assalam 💫",
-    "asalamualaikum": "Walaikum Assalam 💫",
-    "salam": "Walaikum Assalam 💫",
-    "slam": "Walaikum Assalam 💫",
-    "fork": "https://github.com/shahadat-sahu/SHAHADAT-CHAT-BOT.git",
     "kiss me": "তুমি পঁচা তোমাকে কিস দিবো না 🤭",
     "thanks": "এতো ধন্যবাদ না দিয়ে আমার বস SAHU রে তোর গার্লফ্রেন্ড টা দিয়ে দে..!🐸🥵",
     "i love you": "মেয়ে হলে আমার বস SAHU এর ইনবক্সে এখুনি গুঁতা দিন🫢😻",
@@ -73,8 +73,8 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
   };
 
   if (responses[msg]) {
-    // Typing effect before sending message
-    await sendTyping(api, threadID, 1500);
+    const typingTime = typingTimes[msg] || 1500; // যদি নির্দিষ্ট টাইম না থাকে তবে default 1.5s
+    await sendTyping(api, threadID, typingTime);
     return api.sendMessage(responses[msg], threadID, messageID);
   }
 };
