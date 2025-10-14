@@ -3,14 +3,25 @@ const path = global.nodemodule["path"];
 
 module.exports.config = {
   name: "autoreplybot",
-  version: "6.0.2",
+  version: "6.1.0",
   hasPermssion: 0,
   credits: "𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐈𝐬𝐥𝐚𝐦",
-  description: "Auto-response bot with specified triggers",
+  description: "Auto-response bot with specified triggers + typing effect",
   commandCategory: "No Prefix",
   usages: "[any trigger]",
   cooldowns: 3,
 };
+
+// Typing effect function
+async function sendTyping(api, threadID, time = 1500) {
+  try {
+    await api.sendTypingIndicator(threadID, true);
+    await new Promise(resolve => setTimeout(resolve, time));
+    await api.sendTypingIndicator(threadID, false);
+  } catch (err) {
+    console.error("Typing error:", err);
+  }
+}
 
 module.exports.handleEvent = async function ({ api, event, Users }) {
   const { threadID, messageID, senderID, body } = event;
@@ -33,17 +44,16 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     "admin": "He is SAHU তাকে সবাই Cyber Bot Team Saport Admin হিসেবে চিনে😘☺️",
     "babi": "এ তো হাছিনা হে মেরে দিলকি দারকান হে মেরি জান হে😍.",
     "chup": "তুই চুপ চুপ কর পাগল ছাগল",
-    "assalamualaikum": "Walaikum Assalam",
+    "assalamualaikum": "Walaikum Assalam 💫",
     "ASSALAMUALAIKUM": "Walaikum Assalam 💫",
     "Assalamualaikum": "Walaikum Assalam 💫",
-    "assalamualaikum": "Walaikum Assalam 💫",
     "আসসালামুয়ালাইকুম": "ওয়া আলাইকুমুস সালাম 💫",
     "আসসালামু আলাইকুম": "ওয়া আলাইকুমুস সালাম 💫",
     "as-salamu alaykum": "Walaikum Assalam 💫",
     "assalamu alaikum": "Walaikum Assalam 💫",
     "asalamualaikum": "Walaikum Assalam 💫",
     "salam": "Walaikum Assalam 💫",
-    "slam": "Walaikum Assalam 💫"
+    "slam": "Walaikum Assalam 💫",
     "fork": "https://github.com/shahadat-sahu/SHAHADAT-CHAT-BOT.git",
     "kiss me": "তুমি পঁচা তোমাকে কিস দিবো না 🤭",
     "thanks": "এতো ধন্যবাদ না দিয়ে আমার বস SAHU রে তোর গার্লফ্রেন্ড টা দিয়ে দে..!🐸🥵",
@@ -63,6 +73,8 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
   };
 
   if (responses[msg]) {
+    // Typing effect before sending message
+    await sendTyping(api, threadID, 1500);
     return api.sendMessage(responses[msg], threadID, messageID);
   }
 };
