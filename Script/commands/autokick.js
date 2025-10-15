@@ -5,7 +5,7 @@ const reactionKick = "❤";
 const reactionCancel = "👎";
 
 module.exports.config = {
-  name: "autokick",
+  name: "autoremove",
   version: "1.2.0",
   credits: "SHAHADAT SAHU",
   hasPermssion: 1,
