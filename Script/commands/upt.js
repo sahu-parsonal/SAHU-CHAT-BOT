@@ -54,6 +54,7 @@ module.exports.handleEvent = async function ({ api, event }) {
   if (!body) return;
 
   const text = body.trim().toLowerCase();
+  // No prefix mode: only "up" or "upt"
   if (text === "up" || text === "upt") {
     return sendUptime(api, threadID, messageID);
   }
@@ -61,9 +62,10 @@ module.exports.handleEvent = async function ({ api, event }) {
 
 module.exports.run = async function ({ api, event, args }) {
   const { threadID, messageID } = event;
-  if (args.length === 0) return;
+  if (!args || args.length === 0) return;
 
   const cmd = args[0].toLowerCase();
+  // Prefix mode: only "up" or "upt"
   if (cmd === "up" || cmd === "upt") {
     return sendUptime(api, threadID, messageID);
   }
