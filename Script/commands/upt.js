@@ -3,41 +3,35 @@ const request = require("request");
 const path = require("path");
 
 module.exports.config = {
-    name: "upt",
-    version: "2.0.0",
-    hasPermssion: 0,
-    credits: "SHAHADAT SAHU",
-    description: "Monitoring for your Messenger robot 24 hour active",
-    commandCategory: "monitor",
-    usages: "[upt]",
-    cooldowns: 5
+  name: "upt",
+  version: "2.0.0",
+  hasPermssion: 0,
+  credits: "SHAHADAT SAHU",
+  description: "Monitoring for your Messenger robot 24 hour active",
+  commandCategory: "monitor",
+  usages: "[up/upt]",
+  cooldowns: 5
 };
 
 module.exports.onLoad = () => {
-    const dir = path.join(__dirname, "noprefix");
-    const imgPath = path.join(dir, "upt.png");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (!fs.existsSync(imgPath)) {
-        request("https://i.imgur.com/vn4rXA4.jpg").pipe(fs.createWriteStream(imgPath));
-    }
+  const dir = path.join(__dirname, "noprefix");
+  const imgPath = path.join(dir, "upt.png");
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(imgPath)) {
+    request("https://i.imgur.com/vn4rXA4.jpg").pipe(fs.createWriteStream(imgPath));
+  }
 };
 
-module.exports.run = async function({ api, event }) {
-    const { body, threadID, messageID } = event;
-    if (!body) return;
-    const dir = path.join(__dirname, "noprefix");
-    const imgPath = path.join(dir, "upt.png");
-    const prefix = (global.config.PREFIX || "").trim();
-    let text = body.trim();
-    if (text === "upt" || (prefix && text === prefix + "upt")) {
-        let time = process.uptime();
-        let hours = Math.floor(time / 3600);
-        let minutes = Math.floor((time % 3600) / 60);
-        let seconds = Math.floor(time % 60);
-        if (!fs.existsSync(imgPath)) {
-            request("https://i.imgur.com/vn4rXA4.jpg").pipe(fs.createWriteStream(imgPath));
-        }
-        const message = `
+function sendUptime(api, threadID, messageID) {
+  const uptime = process.uptime();
+  const hours = Math.floor(uptime / 3600);
+  const minutes = Math.floor((uptime % 3600) / 60);
+  const seconds = Math.floor(uptime % 60);
+
+  const dir = path.join(__dirname, "noprefix");
+  const imgPath = path.join(dir, "upt.png");
+
+  const message = `
 ╔═══════════════════╗
 ║      🕧 𝗨𝗣𝗧𝗜𝗠𝗘 𝗥𝗢𝗕𝗢𝗧 🕧       
 ╠═══════════════════╣
@@ -48,9 +42,29 @@ module.exports.run = async function({ api, event }) {
 ║ ⏱ 𝗦𝗘𝗖𝗢𝗡𝗗 : ${seconds}
 ╚═══════════════════╝
 `;
-        return api.sendMessage({
-            body: message,
-            attachment: fs.createReadStream(imgPath)
-        }, threadID, messageID);
-    }
+
+  return api.sendMessage({
+    body: message,
+    attachment: fs.createReadStream(imgPath)
+  }, threadID, messageID);
+}
+
+module.exports.handleEvent = async function ({ api, event }) {
+  const { body, threadID, messageID } = event;
+  if (!body) return;
+
+  const text = body.trim().toLowerCase();
+  if (text === "up" || text === "upt") {
+    return sendUptime(api, threadID, messageID);
+  }
+};
+
+module.exports.run = async function ({ api, event, args }) {
+  const { threadID, messageID } = event;
+  if (args.length === 0) return;
+
+  const cmd = args[0].toLowerCase();
+  if (cmd === "up" || cmd === "upt") {
+    return sendUptime(api, threadID, messageID);
+  }
 };
