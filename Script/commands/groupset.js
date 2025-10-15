@@ -2,7 +2,7 @@ const fs = require("fs");
 const axios = require("axios");
 
 module.exports.config = {
-    name: "groupset",
+    name: "group",
     version: "1.0.0",
     hasPermssion: 0,
     credits: "SHAHADAT SAHU",
