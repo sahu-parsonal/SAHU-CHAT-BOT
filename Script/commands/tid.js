@@ -1,15 +1,29 @@
 module.exports.config = {
-	name: "tid",	
-  version: "1.0.0", 
-	hasPermssion: 0,
-	credits: "𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
-	description: "Get box id", 
-	commandCategory: "group",
-	usages: "tid",
-	cooldowns: 5, 
-	dependencies: '',
+  name: "tid",
+  version: "1.0.2",
+  hasPermssion: 0,
+  credits: "SHAHADAT SAHU",
+  description: "Show current thread ID",
+  commandCategory: "group",
+  usages: "tid",
+  cooldowns: 0
 };
 
-module.exports.run = async function({ api, event }) {
-  api.sendMessage("ID of this thread: "+event.threadID, event.threadID, event.messageID);
+module.exports.handleEvent = async function ({ api, event }) {
+  const { body, threadID, messageID } = event;
+  if (!body) return;
+
+  // No prefix check (only "tid")
+  if (body.trim().toLowerCase() === "tid") {
+    return api.sendMessage(`🆔 Thread ID: ${threadID}`, threadID, messageID);
+  }
+};
+
+module.exports.run = async function ({ api, event, args }) {
+  const { threadID, messageID } = event;
+
+  // Prefix command (must be only "tid")
+  if (args.length === 0) {
+    return api.sendMessage(`🆔 Thread ID: ${threadID}`, threadID, messageID);
+  }
 };
