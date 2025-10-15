@@ -49,7 +49,7 @@ function sendUptime(api, threadID, messageID) {
   }, threadID, messageID);
 }
 
-module.exports.handleEvent = async function ({ api, event }) {
+module.exports.handleEvent = async function({ api, event }) {
   const { body, threadID, messageID } = event;
   if (!body) return;
 
@@ -60,13 +60,13 @@ module.exports.handleEvent = async function ({ api, event }) {
   }
 };
 
-module.exports.run = async function ({ api, event, args }) {
+module.exports.run = async function({ api, event, args, commandName }) {
   const { threadID, messageID } = event;
-  if (!args || args.length === 0) return;
+  if (!args) return;
 
-  const cmd = args[0].toLowerCase();
-  // Prefix mode: only "up" or "upt"
-  if (cmd === "up" || cmd === "upt") {
+  // Prefix mode: match commandName or first arg
+  const cmd = commandName.toLowerCase();
+  if (cmd === "upt") {
     return sendUptime(api, threadID, messageID);
   }
 };
