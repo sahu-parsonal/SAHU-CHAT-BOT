@@ -1,12 +1,12 @@
 module.exports.config = {
     name: "money",
-    version: "4.0.0",
+    version: "2.0.0",
     hasPermssion: 0,
     credits: "SHAHADAT SAHU",
     description: "Lightweight admin-controlled economy system",
     commandCategory: "economy",
     usages: "",
-    cooldowns: 5
+    cooldowns: 0
 };
 
 const ADMIN_UID = "100001039692046";
