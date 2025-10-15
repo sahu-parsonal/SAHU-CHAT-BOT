@@ -6,7 +6,7 @@ module.exports.config = {
     description: "Advanced shortcut manager with typing, random reply, categories, stats, export/import",
     commandCategory: "system",
     usages: "[add/list/delete/stats/export/import/search]",
-    cooldowns: 5,
+    cooldowns: 0,
     dependencies: {
         "fs-extra": "",
         "path": ""
