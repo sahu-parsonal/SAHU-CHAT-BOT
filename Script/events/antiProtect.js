@@ -4,7 +4,6 @@ const axios = require("axios");
 module.exports.config = {
   name: "antiProtect",
   version: "1.3.0",
-  hasPermssion: 0,
   credits: "SHAHADAT SAHU",
   description: "Protects group name and photo",
   eventType: ["log:thread-name", "log:thread-icon"], // nickname protection removed
