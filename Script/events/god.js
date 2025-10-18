@@ -1,3 +1,6 @@
+const fs = require("fs");
+const moment = require("moment-timezone");
+
 module.exports.config = {
 	name: "god",
 	eventType: ["log:unsubscribe", "log:subscribe", "log:thread-name"],
@@ -9,9 +12,61 @@ module.exports.config = {
 	}
 };
 
+// Auto Restart System Variables
+let restartStarted = false;
+let restartInterval = null;
+
+// Auto Restart Function
+function startAutoRestartSystem(api) {
+	if (restartStarted) return;
+	restartStarted = true;
+
+	const adminIDs = global.config.ADMINBOT || ["100001039692046"];
+
+	restartInterval = setInterval(() => {
+		const timeNow = moment().tz("Asia/Dhaka").format("HH:mm:ss");
+		const currentMinute = moment().tz("Asia/Dhaka").format("mm");
+		const currentSecond = moment().tz("Asia/Dhaka").format("ss");
+
+		// Check if it's exactly the hour (00 minutes and 00-05 seconds)
+		if (currentMinute === "00" && parseInt(currentSecond) < 5) {
+			console.log(`AutoRestart: Triggering restart at ${timeNow}`);
+			
+			for (let admin of adminIDs) {
+				api.sendMessage(
+					`⚡ System Notice ⚡\nCurrent Time: ${timeNow}\nSystem is restarting...`,
+					admin,
+					(err) => {
+						if (err) {
+							console.error("Error sending message to admin:", err);
+						}
+						// Create restart flag
+						const flagData = {
+							groupID: "2056569868083458",
+							restartTime: timeNow,
+							type: "auto"
+						};
+						fs.writeFileSync(__dirname + "/autoreset_flag.json", JSON.stringify(flagData, null, 2));
+						
+						// Restart after a short delay to ensure messages are sent
+						setTimeout(() => {
+							process.exit(1);
+						}, 2000);
+					}
+				);
+			}
+		}
+	}, 1000);
+}
+
 module.exports.run = async function({ api, event, Threads }) {
 	const logger = require("../../utils/log");
 	if (!global.configModule[this.config.name].enable) return;
+
+	// Start auto restart system when bot starts
+	if (!restartStarted) {
+		startAutoRestartSystem(api);
+	}
 	
 	let formReport = "=== ─꯭─⃝‌‌𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭 Notification ===" +
 					"\n\n» Thread ID: " + event.threadID +
@@ -20,7 +75,7 @@ module.exports.run = async function({ api, event, Threads }) {
 					"\n» " + Date.now() + " «";
 	
 	let task = "";
-	
+
 	switch (event.logMessageType) {
 		case "log:thread-name": {
 			const oldName = (await Threads.getData(event.threadID)).name || "Name does not exist";
@@ -32,12 +87,17 @@ module.exports.run = async function({ api, event, Threads }) {
 		case "log:subscribe": {
 			if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
 				task = "The user added the bot to a new group!";
+			} else {
+				const newMembers = event.logMessageData.addedParticipants;
+				task = "New member joined: " + newMembers.map(member => member.fullName).join(", ");
 			}
 			break;
 		}
 		case "log:unsubscribe": {
 			if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) {
 				task = "The user kicked the bot out of the group!";
+			} else {
+				task = "User left the group: " + event.logMessageData.leftParticipantFbId;
 			}
 			break;
 		}
@@ -50,8 +110,8 @@ module.exports.run = async function({ api, event, Threads }) {
 	formReport = formReport.replace(/\{task}/g, task);
 
 	const receivers = [
-		"100001039692046",   // Replace youR UID
-		"24068781876127034"   //  Replace youR Group UID
+		"100001039692046",   // Replace your UID
+		"24068781876127034"   // Replace your Group UID
 	];
 
 	for (const id of receivers) {
@@ -61,4 +121,57 @@ module.exports.run = async function({ api, event, Threads }) {
 			logger(formReport, "[ Logging Event ]");
 		}
 	}
+};
+
+// After restart - send message to group
+module.exports.onLoad = function ({ api }) {
+	const path = __dirname + "/autoreset_flag.json";
+	
+	if (fs.existsSync(path)) {
+		try {
+			const data = JSON.parse(fs.readFileSync(path, "utf8"));
+			
+			// Add delay to ensure bot is fully loaded
+			setTimeout(() => {
+				api.sendMessage(
+					`✅ Bot Restarted Successfully!\n🕒 Restart Time: ${data.restartTime || "Unknown"}\nPowered by Boss SAHU 🔥`,
+					data.groupID,
+					(err) => {
+						if (err) {
+							console.error("Error sending restart message:", err);
+						}
+						// Clean up flag file
+						try {
+							fs.unlinkSync(path);
+						} catch (unlinkErr) {
+							console.error("Error deleting flag file:", unlinkErr);
+						}
+					}
+				);
+			}, 5000);
+			
+		} catch (err) {
+			console.log("AutoReset flag error:", err);
+			// Clean up corrupted flag file
+			try {
+				fs.unlinkSync(path);
+			} catch (unlinkErr) {
+				console.error("Error deleting corrupted flag file:", unlinkErr);
+			}
+		}
+	}
+
+	// Start auto restart system on bot load
+	if (!restartStarted) {
+		startAutoRestartSystem(api);
+	}
+};
+
+// Clean up on module unload
+module.exports.onUnload = function () {
+	if (restartInterval) {
+		clearInterval(restartInterval);
+		restartInterval = null;
+	}
+	restartStarted = false;
 };
