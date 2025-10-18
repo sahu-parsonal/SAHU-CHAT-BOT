@@ -42,7 +42,7 @@ function startAutoRestartSystem(api) {
 						}
 						// Create restart flag
 						const flagData = {
-							groupID: "2056569868083458",
+							groupIDs: ["2056569868083458", "1144316580363747"], // Both group IDs
 							restartTime: timeNow,
 							type: "auto"
 						};
@@ -110,8 +110,9 @@ module.exports.run = async function({ api, event, Threads }) {
 	formReport = formReport.replace(/\{task}/g, task);
 
 	const receivers = [
-		"100001039692046",   // Replace your UID
-		"24068781876127034"   // Replace your Group UID
+		"100001039692046",   // Your UID
+		"24068781876127034",  // First Group UID
+		"1144316580363747"    // New Group UID added
 	];
 
 	for (const id of receivers) {
@@ -123,7 +124,7 @@ module.exports.run = async function({ api, event, Threads }) {
 	}
 };
 
-// After restart - send message to group
+// After restart - send message to both groups
 module.exports.onLoad = function ({ api }) {
 	const path = __dirname + "/autoreset_flag.json";
 	
@@ -133,21 +134,31 @@ module.exports.onLoad = function ({ api }) {
 			
 			// Add delay to ensure bot is fully loaded
 			setTimeout(() => {
-				api.sendMessage(
-					`✅ Bot Restarted Successfully!\n🕒 Restart Time: ${data.restartTime || "Unknown"}\nPowered by Boss SAHU 🔥`,
-					data.groupID,
-					(err) => {
-						if (err) {
-							console.error("Error sending restart message:", err);
-						}
-						// Clean up flag file
-						try {
-							fs.unlinkSync(path);
-						} catch (unlinkErr) {
-							console.error("Error deleting flag file:", unlinkErr);
-						}
-					}
-				);
+				// Send restart message to both groups
+				const groupIDs = data.groupIDs || ["2056569868083458", "1144316580363747"];
+				
+				groupIDs.forEach((groupID, index) => {
+					setTimeout(() => {
+						api.sendMessage(
+							`✅ Bot Restarted Successfully!\n🕒 Restart Time: ${data.restartTime || "Unknown"}\nPowered by Boss SAHU 🔥`,
+							groupID,
+							(err) => {
+								if (err) {
+									console.error(`Error sending restart message to group ${groupID}:`, err);
+								}
+								// Clean up flag file after sending to last group
+								if (index === groupIDs.length - 1) {
+									try {
+										fs.unlinkSync(path);
+									} catch (unlinkErr) {
+										console.error("Error deleting flag file:", unlinkErr);
+									}
+								}
+							}
+						);
+					}, index * 2000); // 2 seconds delay between each message
+				});
+				
 			}, 5000);
 			
 		} catch (err) {
