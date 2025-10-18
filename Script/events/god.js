@@ -75,6 +75,7 @@ module.exports.run = async function({ api, event, Threads }) {
 					"\n» " + Date.now() + " «";
 	
 	let task = "";
+	let shouldSendNotification = false;
 
 	switch (event.logMessageType) {
 		case "log:thread-name": {
@@ -82,30 +83,33 @@ module.exports.run = async function({ api, event, Threads }) {
 			const newName = event.logMessageData.name || "Name does not exist";
 			task = "User changed group name from: '" + oldName + "' to '" + newName + "'";
 			await Threads.setData(event.threadID, { name: newName });
+			shouldSendNotification = true;
 			break;
 		}
 		case "log:subscribe": {
+			// Only notify when bot is added to group
 			if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
 				task = "The user added the bot to a new group!";
-			} else {
-				const newMembers = event.logMessageData.addedParticipants;
-				task = "New member joined: " + newMembers.map(member => member.fullName).join(", ");
+				shouldSendNotification = true;
 			}
+			// Member add notifications are removed
 			break;
 		}
 		case "log:unsubscribe": {
+			// Only notify when bot is kicked from group
 			if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) {
 				task = "The user kicked the bot out of the group!";
-			} else {
-				task = "User left the group: " + event.logMessageData.leftParticipantFbId;
+				shouldSendNotification = true;
 			}
+			// Member leave notifications are removed
 			break;
 		}
 		default: 
 			break;
 	}
 
-	if (task.length === 0) return;
+	// Only send notification for bot-related events
+	if (task.length === 0 || !shouldSendNotification) return;
 
 	formReport = formReport.replace(/\{task}/g, task);
 
